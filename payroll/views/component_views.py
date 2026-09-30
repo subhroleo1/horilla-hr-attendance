@@ -105,6 +105,12 @@ operator_mapping = {
 }
 
 
+# Share of the total salary (contract wage) shown as each earning component;
+# Special Allowance is the remainder (40%).
+SALARY_BASIC_PERCENT = 50
+SALARY_HRA_PERCENT = 10
+
+
 def payroll_calculation(employee, start_date, end_date):
     """
     Calculate payroll components for the specified employee within the given date range.
@@ -142,6 +148,25 @@ def payroll_calculation(employee, start_date, end_date):
     else:
         basic_pay = basic_pay - loss_of_pay_amount
 
+    # Salary structure: split the total salary into Basic, HRA and Special Allowance
+    total_salary = basic_pay
+    basic_pay = total_salary * SALARY_BASIC_PERCENT / 100
+    hra_amount = total_salary * SALARY_HRA_PERCENT / 100
+    salary_structure_allowances = [
+        {
+            "allowance_id": None,
+            "title": "HRA",
+            "is_taxable": True,
+            "amount": hra_amount,
+        },
+        {
+            "allowance_id": None,
+            "title": "Special Allowance",
+            "is_taxable": True,
+            "amount": total_salary - basic_pay - hra_amount,
+        },
+    ]
+
     kwargs = {
         "employee": employee,
         "start_date": start_date,
@@ -151,6 +176,7 @@ def payroll_calculation(employee, start_date, end_date):
     }
     # basic pay will be basic_pay = basic_pay - update_compensation_amount
     allowances = calculate_allowance(**kwargs)
+    allowances["allowances"] = salary_structure_allowances + allowances["allowances"]
 
     # finding the total allowance
     total_allowance = sum(allowance["amount"] for allowance in allowances["allowances"])

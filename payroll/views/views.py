@@ -612,6 +612,15 @@ def view_payslip_pdf(request, payslip_id):
                 data["all_deductions"].extend(deduction_list)
 
             data["all_allowances"] = data["allowances"].copy()
+            data["slip_rows"] = salary_slip_rows(data)
+            data["slip_company"] = (
+                getattr(
+                    getattr(payslip.employee_id, "employee_work_info", None),
+                    "company_id",
+                    None,
+                )
+                or company
+            )
             equalize_lists_length(data["allowances"], data["all_deductions"])
             data["zipped_data"] = zip(data["allowances"], data["all_deductions"])
             data["host"] = request.get_host()
@@ -1439,6 +1448,38 @@ def equalize_lists_length(allowances, deductions):
     return deductions, allowances
 
 
+def salary_slip_rows(data):
+    """
+    Pair earnings and deductions row by row for the side-by-side salary slip table.
+    Only non-zero deductions are listed.
+    """
+    earnings = [{"title": _("Basic"), "amount": data["basic_pay"]}] + [
+        allowance for allowance in data["all_allowances"] if allowance.get("title")
+    ]
+    deductions = []
+    if data.get("loss_of_pay"):
+        deductions.append({"title": _("Loss of Pay"), "amount": data["loss_of_pay"]})
+    if data.get("federal_tax"):
+        deductions.append({"title": _("Income Tax"), "amount": data["federal_tax"]})
+    deductions += [
+        deduction for deduction in data["all_deductions"] if deduction.get("amount")
+    ]
+
+    rows = []
+    for index in range(max(len(earnings), len(deductions))):
+        earning = earnings[index] if index < len(earnings) else None
+        deduction = deductions[index] if index < len(deductions) else None
+        rows.append(
+            {
+                "earning_sr": index + 1 if earning else "",
+                "earning": earning,
+                "deduction_sr": index + 1 if deduction else "",
+                "deduction": deduction,
+            }
+        )
+    return rows
+
+
 def generate_payslip_pdf(template_path, context, html=False):
     """
     Generate a PDF file from an HTML template and context data.
@@ -1568,6 +1609,15 @@ def payslip_pdf(request, id):
             ]:
                 data["all_deductions"].extend(deduction_list)
 
+            data["slip_rows"] = salary_slip_rows(data)
+            data["slip_company"] = (
+                getattr(
+                    getattr(payslip.employee_id, "employee_work_info", None),
+                    "company_id",
+                    None,
+                )
+                or company
+            )
             equalize_lists_length(data["allowances"], data["all_deductions"])
             data["zipped_data"] = zip(data["allowances"], data["all_deductions"])
             template_path = "payroll/payslip/payslip_pdf.html"

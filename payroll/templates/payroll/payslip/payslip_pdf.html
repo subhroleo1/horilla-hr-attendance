@@ -1,422 +1,260 @@
 {% load static i18n horillafilters %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter" media="all">
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
-        rel="stylesheet"
-      />
-      <style>
-        html {
-          -webkit-box-sizing: border-box;
-          box-sizing: border-box;
-          overflow-x: hidden;
-          font-family: "Inter", serif;
-        }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% trans "Salary Slip" %}</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        color: #111;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 13px;
+      }
 
-        body {
-          background-color: #f5f7ff;
-          margin: 0;
-        }
+      .slip {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 24px 32px;
+      }
 
-        table {
-          caption-side: bottom;
-          border-collapse: collapse;
-          border: 1px solid #ccc;
-        }
-        table tr,
-        table td,
-        table th {
-          border: 1px solid #ccc;
-          padding: 10px;
-          text-align: left;
-        }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
 
-        .oh-payslip {
-          background: #fff;
-          padding: 40px;
-          font-size: 16px;
-        }
+      /* Header */
+      .slip-header td {
+        vertical-align: top;
+      }
+      .slip-logo {
+        width: 110px;
+      }
+      .slip-logo img {
+        max-width: 80px;
+        max-height: 80px;
+      }
+      .slip-title {
+        text-align: center;
+      }
+      .slip-company-name {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 6px 0 4px 0;
+      }
+      .slip-gstin {
+        font-size: 12px;
+        margin: 0 0 14px 0;
+      }
+      .slip-period {
+        font-size: 14px;
+        margin: 0;
+      }
 
-        .oh-payslip-container {
-          max-width: 880px;
-          padding: 30px 15px;
-          margin-left: auto;
-          margin-right: auto;
-        }
+      /* Employee details */
+      .slip-info {
+        margin-top: 40px;
+      }
+      .slip-info td {
+        padding: 7px 12px;
+        width: 25%;
+        vertical-align: top;
+      }
 
-        .oh-payslip-table .oh-payslip-td-head {
-          color: #777;
-          margin-right: 16px;
-        }
-        .oh-payslip-table .oh-payslip-td-value {
-          color: #111;
-        }
+      /* Earnings / deductions grid */
+      .slip-grid {
+        margin-top: 30px;
+        border: 1px solid #555;
+      }
+      .slip-grid th,
+      .slip-grid td {
+        border: 1px solid #555;
+        padding: 8px 12px;
+        text-align: left;
+        height: 18px;
+      }
+      .slip-grid .slip-grid-caption {
+        text-align: center;
+      }
+      .slip-grid .slip-sr {
+        width: 5%;
+      }
+      .slip-grid .slip-amount {
+        width: 12%;
+        text-align: right;
+      }
 
-        .oh-footer-total .oh-footer-gross-text {
-          margin: 0;
-          color: #777;
-        }
-        .oh-footer-total .oh-footer-total-amount {
-          font-weight: 700;
-          width: 25%;
-        }
-        .oh-footer-total h5 {
-          font-weight: 700;
-          margin: 0px 0 12px 0;
-        }
+      /* Totals */
+      .slip-totals {
+        margin-top: 40px;
+      }
+      .slip-totals td {
+        padding: 6px 12px;
+      }
+      .slip-totals .slip-net td {
+        font-weight: 700;
+      }
 
-        .oh-payslip_head {
-          display: -webkit-box;
-          display: -ms-flexbox;
-          display: flex;
-          -webkit-box-pack: justify;
-          -ms-flex-pack: justify;
-          justify-content: space-between;
-          -webkit-box-align: end;
-          -ms-flex-align: end;
-          align-items: flex-end;
-          padding-bottom: 25px;
-          border-bottom: 1px solid #eaeaea;
-          margin-bottom: 25px;
-          -webkit-box-align: center;
-          -ms-flex-align: center;
-          align-items: center;
-        }
+      /* Footer */
+      .slip-footer {
+        margin-top: 80px;
+        padding-top: 14px;
+        border-top: 1px solid #ccc;
+        text-align: center;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .slip-footer p {
+        margin: 0;
+      }
+      .slip-footer .slip-footer-name {
+        font-weight: 700;
+      }
+      .slip-footer .slip-footer-note {
+        margin-top: 12px;
+        font-style: italic;
+        color: #444;
+      }
+    </style>
 
-        .oh-logo img {
-          width: 150px;
-          -o-object-fit: cover;
-          object-fit: cover;
-        }
+    <script>
+      function printDiv() {
+        const printContents = document.getElementById("printDiv").innerHTML;
+        const originalContents = document.body.innerHTML;
 
-        .oh-payslip-secondhead p {
-          color: #777;
-        }
-        .oh-payslip-secondhead h4 {
-          font-size: 16px;
-          margin: 10px 0;
-          font-weight: 700;
-        }
+        // Replace body content with print content
+        document.body.innerHTML = printContents;
 
-        .oh-payslip-company-name {
-          font-weight: 700;
-          font-size: 20px;
-        }
+        // Add event listener for after printing
+        window.onafterprint = () => {
+          window.location.href = document.referrer; // Redirect to the previous page
+        };
 
-        .oh-payslip-company-address {
-          font-size: 16px;
-          color: #777;
-          width: 90%;
-          word-wrap: break-word;
-          margin-bottom: 0;
-        }
+        // Open print dialog
+        window.print();
 
-        .oh-payslip_left .oh-payslip-left-title {
-          font-size: 16px;
-          color: #777;
-        }
-        .oh-payslip_left .oh-payslip-left-value {
-          font-size: 16px;
-          font-weight: 700;
-          color: #111;
-          margin: 10px 0;
-        }
+        // Restore original content
+        document.body.innerHTML = originalContents;
+      }
 
-        .oh-allowance-table td {
-          color: #777;
-        }
-        .oh-allowance-table .oh-allowance-amount {
-          color: #111;
-          width: 25%;
-        }
+      // Call printDiv on page load
+      window.onload = printDiv;
+    </script>
+  </head>
+  <body id="printDiv">
+    {% with work_info=employee.employee_work_info bank=employee.employee_bank_details %}
+    <div class="slip">
+      <table class="slip-header">
+        <tr>
+          <td class="slip-logo">
+            {% if slip_company.icon %}
+              {% if slip_company.icon.url|slice:":4" == "http" %}
+                <img src="{{slip_company.icon.url}}" alt="Logo" />
+              {% else %}
+                <img src="{{protocol}}://{{host}}{{slip_company.icon.url}}" alt="Logo" />
+              {% endif %}
+            {% endif %}
+          </td>
+          <td class="slip-title">
+            <p class="slip-company-name">GlobalStead Consultants</p>
+            <p class="slip-gstin">{% trans "GSTIN/UIN" %}: 07AATFG8933B1Z5</p>
+            <p class="slip-period">{% trans "Salary Slip for" %} {{payslip.start_date|date:"F Y"}}</p>
+          </td>
+          <td class="slip-logo"></td>
+        </tr>
+      </table>
 
-        .oh-bg-color {
-          background-color: #f7f7f7;
-        }
+      <table class="slip-info">
+        <tr>
+          <td>{% trans "Name:" %}</td>
+          <td>{{employee.get_full_name}}</td>
+          <td>{% trans "Employee ID:" %}</td>
+          <td>{{employee.badge_id|default:"-"}}</td>
+        </tr>
+        <tr>
+          <td>{% trans "Designation:" %}</td>
+          <td>{{work_info.job_position_id|default:"-"}}</td>
+          <td>{% trans "Department:" %}</td>
+          <td>{{work_info.department_id|default:"-"}}</td>
+        </tr>
+        <tr>
+          <td>{% trans "Location:" %}</td>
+          <td>{{work_info.location|default:"-"}}</td>
+          <td>{% trans "Bank Name:" %}</td>
+          <td>{{bank.bank_name|default:"-"}}</td>
+        </tr>
+        <tr>
+          <td>{% trans "Pay Period:" %}</td>
+          <td>{{formatted_start_date}} - {{formatted_end_date}}</td>
+          <td>{% trans "Account No:" %}</td>
+          <td>{{bank.account_number|default:"-"}}</td>
+        </tr>
+        <tr>
+          <td>{% trans "Paid Days:" %}</td>
+          <td>{{paid_days|default:"-"}}</td>
+          <td>{% trans "LOP Days:" %}</td>
+          <td>{{unpaid_days|default:"0"}}</td>
+        </tr>
+      </table>
 
-        .oh-footer-page-number {
-          display: -webkit-box;
-          display: -ms-flexbox;
-          display: flex;
-          -webkit-box-pack: center;
-          -ms-flex-pack: center;
-          justify-content: center;
-          margin-top: 24px;
-        }
-        .oh-footer-page-number p {
-          color: #777;
-          margin: 0;
-        }
-        .mt-4 {
-          margin-top: 24px;
-        }
-        .w-100 {
-          width: 100%;
-        }
-        .w-50 {
-          width: 50%;
-        }
-        .d-flex {
-          display: flex;
-        }
-        .justify-content-between {
-          justify-content: space-between;
-        }
-        .align-item-center {
-          align-items: center;
-        }
-        .gap-2 {
-          gap: 16px;
-        }
-      </style>
+      <table class="slip-grid">
+        <thead>
+          <tr>
+            <th class="slip-grid-caption" colspan="3">{% trans "Earnings" %}</th>
+            <th class="slip-grid-caption" colspan="3">{% trans "Deductions" %}</th>
+          </tr>
+          <tr>
+            <th class="slip-sr">{% trans "Sr" %}</th>
+            <th>{% trans "Salary Head" %}</th>
+            <th class="slip-amount">{% trans "Amount" %}</th>
+            <th class="slip-sr">{% trans "Sr" %}</th>
+            <th>{% trans "Salary Head" %}</th>
+            <th class="slip-amount">{% trans "Amount" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in slip_rows %}
+            <tr>
+              <td class="slip-sr">{{row.earning_sr}}</td>
+              <td>{{row.earning.title}}</td>
+              <td class="slip-amount">{% if row.earning %}{{row.earning.amount|floatformat:2}}{% endif %}</td>
+              <td class="slip-sr">{{row.deduction_sr}}</td>
+              <td>{{row.deduction.title}}</td>
+              <td class="slip-amount">{% if row.deduction %}{{row.deduction.amount|floatformat:2}}{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-      <script>
-          function printDiv() {
-              const printContents = document.getElementById('printDiv').innerHTML;
-              const originalContents = document.body.innerHTML;
+      <table class="slip-totals">
+        <tr>
+          <td style="width: 20%">{% trans "Gross Salary:" %}</td>
+          <td style="width: 25%">{{gross_pay|floatformat:2|currency_symbol_position}}</td>
+          <td style="width: 20%">{% trans "Total Deduction:" %}</td>
+          <td>{{total_deductions|floatformat:2|currency_symbol_position}}</td>
+        </tr>
+        <tr class="slip-net">
+          <td>{% trans "Net Salary:" %}</td>
+          <td>{{net_pay|floatformat:2|currency_symbol_position}}</td>
+          <td></td>
+          <td></td>
+        </tr>
+      </table>
 
-              // Replace body content with print content
-              document.body.innerHTML = printContents;
-
-              // Add event listener for after printing
-              window.onafterprint = () => {
-                  window.location.href = document.referrer; // Redirect to the previous page
-              };
-
-              // Open print dialog
-              window.print();
-
-              // Restore original content
-              document.body.innerHTML = originalContents;
-
-            }
-
-            // Call printDiv on page load
-            window.onload = printDiv;
-
-      </script>
-
-    </head>
-    <body id="printDiv">
-          <div class="container oh-payslip-container">
-      <div class="oh-payslip">
-        <div class="oh-payslip_in" id="download_section">
-          {% if employee.employee_work_info.company_id %}
-            <div class="oh-payslip_head">
-              <div class="oh-payslip_left">
-                <p class="oh-payslip-company-name">{{employee.employee_work_info.company_id}}</p>
-                <p class="oh-payslip-company-address">
-                  {{employee.employee_work_info.company_id.address}}
-                  {{employee.employee_work_info.company_id.country}} {{employee.employee_work_info.company_id.state}}, {{employee.employee_work_info.company_id.city}}
-                  {{employee.employee_work_info.company_id.zip}}
-                </p>
-              </div>
-              <div class="cs-payslip_right cs-text_right">
-                <div class="oh-logo cs-mb5">
-                  {% comment %} This works for: Local media, Cloud storage (GCS / S3), Signed URLs, PDF printing {% endcomment %}
-                  <img src="{{employee.employee_work_info.company_id.icon.url}}" alt="Logo" />
-                </div>
-              </div>
-            </div>
-          {% else %}
-            <div class="oh-payslip_head">
-              <div class="oh-payslip_left">
-                <p class="oh-payslip-company-name">{{company}} - Headquarters</p>
-                <p class="oh-payslip-company-address">
-                  {{company.address}}
-                  {{company.country}} {{company.state}}, {{company.city}}
-                  {{company.zip}}
-                </p>
-              </div>
-              <div class="cs-payslip_right cs-text_right">
-                <div class="oh-logo cs-mb5">
-                  <img src="{{protocol}}://{{host}}{{company.icon.url}}" alt="Logo" />
-                </div>
-              </div>
-            </div>
-          {% endif %}
-          <div
-            class="oh-payslip-secondhead d-flex justify-content-between cs-mb10"
-          >
-            <h4>{{month_start_name}} {% trans "to" %} {{month_end_name}} {% trans "Payslip" %}</h4>
-            <div class="oh-payslip_left">
-              <div class="d-flex align-item-center gap-2">
-                <span class="oh-payslip-left-title">{% trans "Employee Netpay :" %} </span>
-                <p class="oh-payslip-left-value">{{net_pay|floatformat:2|currency_symbol_position}}<br /></p>
-              </div>
-            </div>
-          </div>
-
-          <table class="oh-payslip-table w-100 mt-4">
-            <tbody>
-              <tr class="">
-                <td class="w-50">
-                  <span class="oh-payslip-td-head">{% trans "Employee ID :" %}</span>
-                  <span class="oh-payslip-td-value">{{employee.badge_id}}</span>
-                </td>
-                <td class="w-50">
-                  <span class="oh-payslip-td-head">{% trans "Employee Name :" %}</span>
-                  <span class="oh-payslip-td-value">{{employee}}</span>
-                </td>
-              </tr>
-              <tr>
-                <td class="w-50">
-                  <span class="oh-payslip-td-head">{% trans "Department :" %}</span>
-                  <span class="oh-payslip-td-value">{{employee.employee_work_info.department_id.department}}</span>
-                </td>
-                <td class="w-50">
-                  <span class="oh-payslip-td-head">{% trans "Bank Acc./Cheque No :" %}</span>
-                  <span class="oh-payslip-td-value">{{employee.employee_bank_details.account_number}}</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <table class="w-100 oh-allowance-table mt-4">
-            <thead>
-              <tr class="oh-bg-color">
-                <th class="">{% trans "Allowance" %}</th>
-                <th class="">{% trans "Amount" %}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-									{% trans "Basic Pay" %}</td>
-                <td class="oh-allowance-amount">
-                  {{basic_pay|floatformat:2|currency_symbol_position}}
-                </td>
-              </tr>
-              {% for allowance in all_allowances %}
-                <tr>
-                  <td class="">{{allowance.title}}</td>
-                  <td class="oh-allowance-amount">
-                    {{allowance.amount|floatformat:2|currency_symbol_position}}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-            <tfoot class="oh-payslip__table-tfoot">
-							<tr class="oh-payslip__table-tr">
-								<th
-									class="oh-payslip__table-tf"
-								>
-									{% trans "Total Gross Pay" %}
-								</th>
-								<th class="oh-payslip__table-tf">
-									{{gross_pay|floatformat:2|currency_symbol_position}}
-								</th>
-							</tr>
-						</tfoot>
-          </table>
-
-          <table class="w-100 oh-allowance-table mt-4">
-            <thead>
-              <tr class="oh-bg-color">
-                <th class="">{% trans "Deduction" %}</th>
-                <th class="">{% trans "Amount" %}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="">{% trans "Loss of Pay" %}</td>
-                <td class="oh-allowance-amount">
-                  {{loss_of_pay|floatformat:2|currency_symbol_position}}
-                </td>
-              </tr>
-              {% for deduction in basic_pay_deductions %}
-                <tr>
-                  <td class="">{{deduction.title}}</td>
-                  <td class="oh-allowance-amount">
-                    {{deduction.amount|floatformat:2|currency_symbol_position}}
-                  </td>
-                </tr>
-              {% endfor %}
-              {% for deduction in gross_pay_deductions %}
-                <tr>
-                  <td class="">{{deduction.title}}</td>
-                  <td class="oh-allowance-amount">
-                    {{deduction.amount|floatformat:2|currency_symbol_position}}
-                  </td>
-                </tr>
-              {% endfor %}
-              {% for deduction in pretax_deductions %}
-                <tr>
-                  <td class="">{{deduction.title}}</td>
-                  <td class="oh-allowance-amount">
-                    {{deduction.amount|floatformat:2|currency_symbol_position}}
-                  </td>
-                </tr>
-              {% endfor %}
-              {% for deduction in post_tax_deductions %}
-                <tr>
-                  <td class="">{{deduction.title}}</td>
-                  <td class="oh-allowance-amount">
-                    {{deduction.amount|floatformat:2|currency_symbol_position}}
-                  </td>
-                </tr>
-              {% endfor %}
-              <tr>
-                <td class="">{% trans "Federal Tax" %}</td>
-                <td class="oh-allowance-amount">
-									{{federal_tax|floatformat:2|currency_symbol_position}}
-                </td>
-              </tr>
-              {% for deduction in tax_deductions %}
-                <tr>
-                  <td class="">{{deduction.title}}</td>
-                  <td class="oh-allowance-amount">
-										{{deduction.amount|floatformat:2|currency_symbol_position}}
-                  </td>
-                </tr>
-              {% endfor %}
-              {% for deduction in net_deductions %}
-                <tr>
-                  <td class="">{{deduction.title}}</td>
-                  <td class="oh-allowance-amount">
-										{{deduction.amount|floatformat:2|currency_symbol_position}}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-            <tfoot class="oh-payslip__table-tfoot">
-							<tr class="oh-payslip__table-tr">
-								<th class="oh-payslip__table-tf">{% trans "Total Deductions" %}</th>
-								<th class="oh-payslip__table-tf">
-									{{total_deductions|floatformat:2|currency_symbol_position}}
-								</th>
-							</tr>
-						</tfoot>
-          </table>
-        </div>
-        <div class="oh-footer-total mt-4">
-          <table class="w-100">
-            <tbody>
-              <tr class="">
-                <td class="">
-                  <h5>{% trans "Total Net Payable" %}</h5>
-                  <p class="oh-footer-gross-text">
-                    {% trans "Gross earning - Total Deduction" %}
-                  </p>
-                </td>
-                <td class="oh-footer-total-amount">
-                  {{net_pay|floatformat:2|currency_symbol_position}}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
+      <div class="slip-footer">
+        <p class="slip-footer-name">GlobalStead Consultants</p>
+        <p>1007, TOWER J, 10TH FLOOR, LOGIX BLOSSOM</p>
+        <p>COUNTY, SECTOR 137, NOIDA 201301, INDIA</p>
+        <p>{% trans "GSTIN/UIN" %}: 07AATFG8933B1Z5</p>
+        <p class="slip-footer-note">
+          {% trans "This is a computer-generated salary slip and does not require any signature." %}
+        </p>
       </div>
     </div>
-    </body>
-    <button type="button" onclick="printDiv()" id="" style="display:none;">
-        print as PDF
-    </button>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% endwith %}
+  </body>
 </html>
