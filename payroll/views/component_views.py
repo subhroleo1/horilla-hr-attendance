@@ -148,8 +148,11 @@ def payroll_calculation(employee, start_date, end_date):
     else:
         basic_pay = basic_pay - loss_of_pay_amount
 
-    # Salary structure: split the total salary into Basic, HRA and Special Allowance
+    # Salary structure: split the total salary into Basic, HRA and Special Allowance.
+    # Earnings are shown in full; unpaid leave is deducted once, as Loss of Pay.
     total_salary = basic_pay
+    if contract.deduct_leave_from_basic_pay:
+        total_salary = basic_pay + loss_of_pay
     basic_pay = total_salary * SALARY_BASIC_PERCENT / 100
     hra_amount = total_salary * SALARY_HRA_PERCENT / 100
     salary_structure_allowances = [
